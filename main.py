@@ -3,8 +3,8 @@ import sqlite3
 from flet import View
 from deep_translator import GoogleTranslator
 import time
-import random
 import requests
+import os
 
 
 
@@ -12,6 +12,138 @@ import requests
 
 db = sqlite3.connect('telegram-trans.db',check_same_thread=False)
 cursor = db.cursor()
+
+class documentconverted(ft.Column):
+    def __init__(self):
+        super().__init__()
+        self._link_generator = ft.TextField(hint_text="Paste here",border_color="grey")
+        self._generate = ft.ElevatedButton("Execute",color="white",
+                                           style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0),side=ft.border.BorderSide(1,"grey"))
+                                           ,bgcolor="black",width=301,height=40,on_click=self.loading_terrain)
+       
+        self._Loading_element = ft.Container(
+            image_src="assets/tree_dots_loading.gif",
+            height=100,
+            width=100,
+            visible=False
+        )
+        self._lottie_loading = ft.Container(
+            ft.Row(
+                [
+                    ft.Lottie(
+                        src="https://lottie.host/10e19321-ba3c-42cc-8ac3-3d61feb9799f/D38qCYJrsO.json",
+                        reverse=False,
+                        animate=True
+                    )
+                ]
+            ),
+            height=100,
+            width=100,
+            visible=False
+        )
+        self._language_option = ft.Dropdown(
+            options=[
+                ft.dropdown.Option("vietnamese"),
+                ft.dropdown.Option("english"),
+                ft.dropdown.Option("russian"),
+                ft.dropdown.Option("chinese (traditional)"),
+                ft.dropdown.Option("french"),
+            ],
+            width=145,
+            text_size=12,
+            bgcolor="black",
+            color="white",
+            text_style=ft.TextStyle(color="white"),
+            value="english",
+            border_color="grey"
+        )
+        self._document_type = ft.Dropdown(
+            options=[
+                ft.dropdown.Option("PDF"),
+                ft.dropdown.Option("Docx")
+            ],
+            width=145,
+            text_size=12,
+            bgcolor="black",
+            color="white",
+            text_style=ft.TextStyle(color="white"),
+            value="PDF",
+            border_color="grey"
+        )
+        self._document_symbol = ft.Container(
+            image_src='assets/document.png',
+            height=300,
+            width=300
+        )
+
+        self.controls = [
+            ft.Container(
+                ft.Row(
+                    [
+                        ft.Column(
+                            [
+                                self._document_symbol,
+                                ft.Text("Copy your document URL and execute it, then copy the directory\nthat "
+                                        "Targeted the installed translated document",size=10),
+                                self._link_generator,
+                                ft.Row(
+                                    [
+                                        self._language_option,
+                                        self._document_type
+                                    ],
+                                    alignment=ft.MainAxisAlignment.CENTER
+                                ),
+                                self._generate,
+                                ft.Row(
+                                    [
+                                        # self._Loading_element,
+                                        self._lottie_loading
+                                    ],
+                                    width=300,
+                                    alignment=ft.MainAxisAlignment.CENTER
+                                )
+                                
+                            ],
+                            scroll=ft.ScrollMode.ALWAYS
+                        ),
+                    ],
+                    width=400,
+                    alignment=ft.MainAxisAlignment.CENTER
+                ),
+                margin=ft.margin.only(top=15)
+            )
+        ]
+
+
+    def request_doc(self,e):
+        response_doc = requests.get(self._link_generator.value,timeout=1)
+        if response_doc.status_code == 200:
+            with open(f"{None}.{None}","wb") as file:
+                file.write(response_doc.content)
+        else:
+            return response_doc.status_code
+        self.update()
+        
+    def translate_doc(self,e):
+        doc = os.open("")
+        doc_trans = GoogleTranslator(target=f"{self._language_option.value}")
+        self.update()
+
+    def loading_progress(self,e):
+        # self._Loading_element.visible = True
+        self._lottie_loading.visible = True
+        self.update()
+
+    def close_progress(self,e):
+        # self._Loading_element.visible = False
+        self._lottie_loading.visible = False
+        self.update()
+
+    def loading_terrain(self,e):
+        self.loading_progress(e)
+        time.sleep(5)
+        self.close_progress(e)
+        self.update()
 
 #Test connection
 class Documentgenerator(ft.Column):
@@ -21,6 +153,67 @@ class Documentgenerator(ft.Column):
         self.DOCX_generator = ft.IconButton(ft.icons.FILE_DOWNLOAD,icon_color="blue")
         self._name_generator = ft.TextField(border_color="white")
         self.loading_progress = None
+
+        self.open_theme_button = ft. IconButton(ft.icons.ARROW_RIGHT,visible=True,
+                                          icon_color="white",icon_size=30,
+                                          on_click=self.Open_theme_setting_layout)
+        self.close_theme_button = ft. IconButton(ft.icons.ARROW_DROP_DOWN,visible=False,
+                                            icon_color="white",icon_size=30,
+                                            on_click=self.close_theme_setting_layout)
+
+        self._build_container = ft.Container(
+            ft.Column(
+                [
+                    ft.Row(
+                        [
+                            ft.Text("Export", weight="bold", color="white"),
+                            self.open_theme_button,
+                            self.close_theme_button,
+                        ],
+                        alignment="spacebetween"
+                    ),
+                    #Option here
+                    ft.Column(
+                        [
+                            ft.Row(
+                                [
+                                    self.PDF_generator,
+                                    ft.Text("PDF export",color="white",weight="bold")
+                                ]
+                            ),
+                            ft.Row(
+                                [
+                                    self.DOCX_generator,
+                                    ft.Text("Docx export",color="white",weight="bold")
+                                ]
+                            )
+                        ]
+                    )
+                ]
+            ),
+            height=80,
+            # width=450,
+            bgcolor="black",
+            border_radius=20,
+            padding=15,
+            animate=ft.animation.Animation(1000, ft.AnimationCurve.BOUNCE_OUT),
+        )
+        self.controls = [self._build_container]
+
+    def Open_theme_setting_layout(self,e):
+        self.open_theme_button.visible = False
+        self.close_theme_button.visible = True
+        self._build_container.visible = True
+        self._build_container.height = 180
+        self.update()
+    
+    def close_theme_setting_layout(self,e):
+        self.open_theme_button.visible = True
+        self.close_theme_button.visible = False
+        self._build_container.visible = True
+        self._build_container.height = 80
+        self.update()
+
 
 class Note(ft.Column):
     def __init__(self,Title,Text,Delete):
@@ -700,6 +893,7 @@ def main(page:ft.Page):
         destinations=[
             ft.NavigationDestination(icon=ft.icons.HOME, label="Home"),
             ft.NavigationDestination(icon=ft.icons.LIST, label="Dictionary"),
+            ft.NavigationDestination(icon=ft.icons.LINK, label="Convert"),
             ft.NavigationDestination(icon=ft.icons.SETTINGS, label="Settings"),
         ],
     )
@@ -1212,22 +1406,26 @@ def main(page:ft.Page):
     )
 
     
-
-
     page_3 = ft.Container(
+        documentconverted(),
+        visible=False
+    )
+
+    page_4 = ft.Container(
         ft.Column(
             [
                 ft.Row(
                     [
-                        ft.Text("Settings ",size=30),
+                        ft.Text("Settings ",size=30,weight="bold"),
                     ],
                     
-                    alignment=ft.MainAxisAlignment.CENTER
+                    alignment=ft.MainAxisAlignment.START
                 ),
-                ft.Divider(color="grey"),
+                # ft.Divider(color="grey"),
                 Theme_layout,
                 Storage_layout,
                 Reboot_layout,
+                Documentgenerator(),
                 ft.Divider(),
                 ft.Container(
                     ft.Column(
@@ -1240,9 +1438,9 @@ def main(page:ft.Page):
                 ft.Container(
                     ft.Column(
                         [
-                            ft.Text("Version: 0.7.12",size=20),
-                            ft.Text("SDK version: 0.4.10",size=20),
-                            ft.Text("IPA version: 0.2.2",size=20),
+                            ft.Text("Version: 0.7.12",size=12),
+                            ft.Text("SDK version: 0.4.10",size=12),
+                            ft.Text("IPA version: 0.2.2",size=12),
 
                         ]
                     ),
@@ -1260,26 +1458,7 @@ def main(page:ft.Page):
                 ft.Container(
                     ft.Column(
                         [
-                            ft.Container(
-                                ft.Row(
-                                    [
-                                        ft.Icon(name=ft.icons.TELEGRAM, color="lightblue"),
-                                        ft.Text(
-                                            spans=[
-                                                ft.TextSpan(
-                                                    "russianb_0",
-                                                    ft.TextStyle(color="white"),
-                                                    url= random.choice(['https://t.me/russianb_0'])
-                                                    
-                                                )
-                                            ]
-                                        )
-                                    ]
-                                ),
-                                padding=10,
-                                border_radius=30,
-                                bgcolor="black"
-                            ),
+                            
                             ft.Container(
                                 ft.Row(
                                     [
@@ -1296,7 +1475,7 @@ def main(page:ft.Page):
                                     ]
                                 ),
                                 padding=10,
-                                border_radius=30,
+                                border_radius=10,
                                 bgcolor="black"
                                 
                             )
@@ -1304,65 +1483,15 @@ def main(page:ft.Page):
                     ),
                     padding=ft.padding.only(top=15,left=5)
                 ),
-                ft.Divider(),
-                ft.Container(
-                    ft.Column(
-                        [
-                            ft.Text("Come join us",size=20,weight="bold"),
-                        ]
-                    ),
-                    padding=ft.padding.only(left=10)
-                ),
-                ft.Container(
-                    ft.Row(
-                        [
-                            ft.Icon(name=ft.icons.TELEGRAM, color="lightblue",size=40),
-                            ft.Text(
-                                spans=[
-                                    ft.TextSpan(
-                                        "t.me/puzlevn",
-                                        ft.TextStyle(color="white"),
-                                        url="https://t.me/puzlevn",
-                                    )
-                                ]
-                            )
-                        ]
-                    ),
-                    padding=10,
-                    border_radius=30,
-                    bgcolor="black",
-                    height=60
-                    
-                ),
-                ft.Container(
-                    ft.Row(
-                        [
-                            ft.Icon(name=ft.icons.TIKTOK_OUTLINED, color="white",size=40),
-                            ft.Text(
-                                spans=[
-                                    ft.TextSpan(
-                                        "www.tiktok.com/@puzlevn",
-                                        ft.TextStyle(color="white"),
-                                        url="https://www.tiktok.com/@puzlevn",
-                                    )
-                                ]
-                            )
-                        ]
-                    ),
-                    padding=10,
-                    border_radius=30,
-                    bgcolor="black",
-                    height=60,
-                    margin=ft.margin.only(bottom=10)
-                    
-                )
+                
                 
             ],
-            height=810,
+            height=1000,
             scroll=ft.ScrollMode.HIDDEN,
             
         ),
         visible=False,
+        margin=ft.margin.only(top=10)
         
     )
 
@@ -1370,7 +1499,8 @@ def main(page:ft.Page):
     page_stack = [
         page_1,
         page_2,
-        page_3    
+        page_3,
+        page_4   
     ]
 
 
