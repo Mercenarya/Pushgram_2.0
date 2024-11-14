@@ -23,6 +23,7 @@ def resquest_doc(link):
 def translate(docx):
     doc = pymupdf.open(docx)
     trans = GoogleTranslator(target="vietnamese")
+    xref = doc.add_ocg("vietnamese")
     for page in doc.pages:
         target = doc.pages
 
