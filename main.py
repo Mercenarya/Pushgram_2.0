@@ -17,6 +17,7 @@ class documentconverted(ft.Column):
     def __init__(self):
         super().__init__()
         self._link_generator = ft.TextField(hint_text="Paste here",border_color="grey")
+        self._name_extracted_file = ft.TextField(hint_text="Extract file name",border_color="grey")
         self._generate = ft.ElevatedButton("Execute",color="white",
                                            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0),side=ft.border.BorderSide(1,"grey"))
                                            ,bgcolor="black",width=301,height=40,on_click=self.loading_terrain)
@@ -83,9 +84,11 @@ class documentconverted(ft.Column):
                         ft.Column(
                             [
                                 self._document_symbol,
+
                                 ft.Text("Copy your document URL and execute it, then copy the directory\nthat "
                                         "Targeted the installed translated document",size=10),
                                 self._link_generator,
+                                self._name_extracted_file,
                                 ft.Row(
                                     [
                                         self._language_option,
