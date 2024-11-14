@@ -28,6 +28,7 @@ jobs:
       - name: install dependencies
         run: |
           pip install -r requirements.txt
+          
       - name: check directory
         run: |
           ls
