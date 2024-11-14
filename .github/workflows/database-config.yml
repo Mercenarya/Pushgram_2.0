@@ -28,14 +28,14 @@ jobs:
       - name: install dependencies
         run: |
           pip install -r requirements.txt
-          
+
       - name: check directory
         run: |
           ls
 
       - name: run database
         run: |
-          python database.py
+          python databases.py
 
     
           
