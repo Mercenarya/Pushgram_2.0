@@ -27,6 +27,7 @@ jobs:
 
       - name: install dependencies
         run: |
+          python.exe -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: check directory
@@ -36,7 +37,3 @@ jobs:
       - name: run database
         run: |
           python databases.py
-
-    
-          
-  

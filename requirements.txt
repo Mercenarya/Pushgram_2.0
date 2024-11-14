@@ -1,3 +1,4 @@
 flet
 deep_translator
 requests
+PyPDF2

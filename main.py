@@ -4,6 +4,7 @@ from flet import View
 from deep_translator import GoogleTranslator
 import time
 import requests
+import PyPDF2
 import os
 
 
@@ -20,14 +21,31 @@ class documentconverted(ft.Column):
         self._name_extracted_file = ft.TextField(hint_text="Extract file name",border_color="grey")
         self._generate = ft.ElevatedButton("Execute",color="white",
                                            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0),side=ft.border.BorderSide(1,"grey"))
-                                           ,bgcolor="black",width=301,height=40,on_click=self.loading_terrain)
+                                           ,bgcolor="black",width=301,height=40,on_click=self.request_doc)
        
         self._Loading_element = ft.Container(
             image_src="assets/tree_dots_loading.gif",
-            height=100,
+            height=100, 
             width=100,
             visible=False
         )
+        
+        self._text_leak = ft.TextField(border_color="grey",color="white",disabled=True,multiline=True)
+        self._pre_document_leak = ft.Container(
+            ft.Column(
+                [
+                    self._text_leak
+                ],
+                
+                scroll=ft.ScrollMode.ALWAYS
+            ),
+            height=230,
+            width=300,
+            visible=False,
+            bgcolor="grey",
+            padding=10
+        )
+
         self._lottie_loading = ft.Container(
             ft.Row(
                 [
@@ -42,6 +60,21 @@ class documentconverted(ft.Column):
             width=100,
             visible=False
         )
+        self._lottie_check = ft.Container(
+            ft.Row(
+                [
+                    ft.Lottie(
+                        src="https://lottie.host/a7d2c5d1-63be-4622-b5b8-00faea1e3e69/HcAZkGpwKC.json",
+                        reverse=False,
+                        animate=True
+                    )
+                ]
+            ),
+            height=100,
+            width=100,
+            visible=False
+        )
+
         self._language_option = ft.Dropdown(
             options=[
                 ft.dropdown.Option("vietnamese"),
@@ -73,8 +106,8 @@ class documentconverted(ft.Column):
         )
         self._document_symbol = ft.Container(
             image_src='assets/document.png',
-            height=300,
-            width=300
+            height=200,
+            width=200
         )
 
         self.controls = [
@@ -83,7 +116,13 @@ class documentconverted(ft.Column):
                     [
                         ft.Column(
                             [
-                                self._document_symbol,
+                                ft.Row(
+                                    [
+                                        self._document_symbol,
+                                    ],
+                                    width=300,
+                                    alignment=ft.MainAxisAlignment.CENTER
+                                ),
 
                                 ft.Text("Copy your document URL and execute it, then copy the directory\nthat "
                                         "Targeted the installed translated document",size=10),
@@ -100,58 +139,93 @@ class documentconverted(ft.Column):
                                 ft.Row(
                                     [
                                         # self._Loading_element,
-                                        self._lottie_loading
+                                        self._lottie_loading,
+                                        self._lottie_check,
+                                        self._pre_document_leak
                                     ],
                                     width=300,
                                     alignment=ft.MainAxisAlignment.CENTER
                                 )
                                 
                             ],
+                            height=2000,
                             scroll=ft.ScrollMode.ALWAYS
                         ),
                     ],
                     width=400,
                     alignment=ft.MainAxisAlignment.CENTER
                 ),
-                margin=ft.margin.only(top=15)
+                margin=ft.margin.only(top=15),
+                padding=ft.padding.only(top=10)
             )
         ]
 
 
     def request_doc(self,e):
-        response_doc = requests.get(self._link_generator.value,timeout=1)
-        if response_doc.status_code == 200:
-            with open(f"{None}.{None}","wb") as file:
-                file.write(response_doc.content)
-        else:
-            return response_doc.status_code
-        self.update()
         
+        self.clear_status(e)
+        self.invisible_check(e)
+        self.loading_progress(e)
+        response_doc = requests.get(self._link_generator.value)
+        try:
+            if response_doc.status_code == 200:
+                with open(f"{self._name_extracted_file.value}.{self._document_type.value}","wb") as file:
+                    file.write(response_doc.content)
+            else:
+                return response_doc.status_code
+        except Exception as error:
+            print(error)
+        self.close_progress(e)
+        self.visible_check(e)
+        time.sleep(3)
+        self.invisible_check(e)
+        self.translate_doc(e)
+        self.update()
+
     def translate_doc(self,e):
-        doc = os.open("")
         doc_trans = GoogleTranslator(target=f"{self._language_option.value}")
+        target = os.path.dirname(os.path.abspath(__file__))
+        with open(f"gitshet.pdf","rb") as file:
+            read_pdf = PyPDF2.PdfReader(file)
+            text = ""
+            trans = ""
+            for page in range(len(read_pdf.pages)):
+                text += read_pdf.pages[page].extract_text()
+                trans += doc_trans.translate(text)
+            self._text_leak.value = trans
+            self._pre_document_leak.visible = True
+            print(trans)
+        
+        self.update()
+
+    def visible_check(self,e):
+        self._lottie_check.visible = True
+        self.update()
+
+    def invisible_check(self,e):
+        self._lottie_check.visible = False
         self.update()
 
     def loading_progress(self,e):
-        # self._Loading_element.visible = True
         self._lottie_loading.visible = True
         self.update()
 
     def close_progress(self,e):
-        # self._Loading_element.visible = False
         self._lottie_loading.visible = False
         self.update()
 
-    def loading_terrain(self,e):
-        self.loading_progress(e)
-        time.sleep(5)
-        self.close_progress(e)
+    def clear_status(self,e):
+        if self._name_extracted_file.value == "" and self._link_generator.value == "":
+            self.invisible_check(e)
         self.update()
 
-#Test connection
+    
+
+
 class Documentgenerator(ft.Column):
     def __init__(self):
         super().__init__()
+        
         self.PDF_generator = ft.IconButton(ft.icons.FILE_DOWNLOAD,icon_color="red")
         self.DOCX_generator = ft.IconButton(ft.icons.FILE_DOWNLOAD,icon_color="blue")
         self._name_generator = ft.TextField(border_color="white")
@@ -160,6 +234,7 @@ class Documentgenerator(ft.Column):
         self.open_theme_button = ft. IconButton(ft.icons.ARROW_RIGHT,visible=True,
                                           icon_color="white",icon_size=30,
                                           on_click=self.Open_theme_setting_layout)
+        
         self.close_theme_button = ft. IconButton(ft.icons.ARROW_DROP_DOWN,visible=False,
                                             icon_color="white",icon_size=30,
                                             on_click=self.close_theme_setting_layout)
