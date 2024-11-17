@@ -17,7 +17,8 @@ cursor = db.cursor()
 class documentconverted(ft.Column):
     def __init__(self):
         super().__init__()
-        self._link_generator = ft.TextField(hint_text="Paste here",border_color="grey")
+        self._page_number = ft.TextField(hint_text=0,value=0,color="white",border_color="white",width=50,on_change=self.update_doc_pages)
+        self._link_generator = ft.TextField(hint_text="Link",border_color="grey")
         self._name_extracted_file = ft.TextField(hint_text="Extract file name",border_color="grey")
         self._generate = ft.ElevatedButton("Execute",color="white",
                                            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0),side=ft.border.BorderSide(1,"grey"))
@@ -46,35 +47,7 @@ class documentconverted(ft.Column):
             padding=10
         )
 
-        self._lottie_loading = ft.Container(
-            ft.Row(
-                [
-                    ft.Lottie(
-                        src="https://lottie.host/10e19321-ba3c-42cc-8ac3-3d61feb9799f/D38qCYJrsO.json",
-                        reverse=False,
-                        animate=True
-                    )
-                ]
-            ),
-            height=100,
-            width=100,
-            visible=False
-        )
-        self._lottie_check = ft.Container(
-            ft.Row(
-                [
-                    ft.Lottie(
-                        src="https://lottie.host/a7d2c5d1-63be-4622-b5b8-00faea1e3e69/HcAZkGpwKC.json",
-                        reverse=False,
-                        animate=True
-                    )
-                ]
-            ),
-            height=100,
-            width=100,
-            visible=False
-        )
-
+        
         self._language_option = ft.Dropdown(
             options=[
                 ft.dropdown.Option("vietnamese"),
@@ -109,6 +82,55 @@ class documentconverted(ft.Column):
             height=200,
             width=200
         )
+        
+        self.page_reader = ft.Container(
+            ft.Column(
+                [
+                    self._text_leak
+                ],
+                height=1000,
+                scroll=ft.ScrollMode.ALWAYS
+            ),
+            height=700,
+            bgcolor="grey"
+        )
+
+        self.document_reader = ft.Column(
+            [
+                # self.page_reader
+            ],
+            height=650,
+            scroll=ft.ScrollMode.ALWAYS,
+            visible=False
+        )
+
+        self.page_count_step = ft.Container(
+            ft.Row(
+                [
+                    self._page_number
+                ]
+            ),
+            
+            width=80,
+            height=60
+        )
+
+        self.document_controller = ft.Container(
+
+            ft.Row(
+                [
+                    ft.IconButton(ft.icons.ARROW_LEFT,icon_color="white"),
+                    self.page_count_step,
+                    ft.IconButton(ft.icons.ARROW_RIGHT,icon_color="white")
+                ],alignment="spacebetween"
+            ),
+            height=60,
+            width=400,
+            bgcolor="grey",
+            visible=False,
+            margin=ft.margin.only(top=10)
+
+        )
 
         self.controls = [
             ft.Container(
@@ -138,9 +160,9 @@ class documentconverted(ft.Column):
                                 self._generate,
                                 ft.Row(
                                     [
-                                        # self._Loading_element,
-                                        self._lottie_loading,
-                                        self._lottie_check,
+                                        self._Loading_element,
+                                        # self._lottie_loading,
+                                        # self._lottie_check,
                                         self._pre_document_leak
                                     ],
                                     width=300,
@@ -162,9 +184,6 @@ class documentconverted(ft.Column):
 
 
     def request_doc(self,e):
-        
-        self.clear_status(e)
-        self.invisible_check(e)
         self.loading_progress(e)
         response_doc = requests.get(self._link_generator.value)
         try:
@@ -176,49 +195,101 @@ class documentconverted(ft.Column):
         except Exception as error:
             print(error)
         self.close_progress(e)
-        self.visible_check(e)
-        time.sleep(3)
-        self.invisible_check(e)
+        self.open_document_page(e)
         self.translate_doc(e)
         self.update()
 
+    def open_document_page(self,e):
+        self.document_reader.visible = True
+        self.document_controller.visible = True
+        self.controls = [
+            self.document_controller,
+            self.document_reader,
+            
+    
+        ]
+
+    #total pages of document
+    # def next_page(self,doc):
+    #     count = 0
+    #     for page in doc:
+    #         count += 1
+    #         self._page_number = count
+    # def get_page_next(self,e):
+    #     self.next_page()
+    #     self.update()
+            
+
+    def update_doc_pages(self,e):
+        self.document_reader.controls.clear()
+        self.translate_doc(e)
+        self.update()
     def translate_doc(self,e):
+        self.document_reader.controls.clear()
+        '''Test PDF link below'''
+        '''https://icseindia.org/document/sample.pdf'''
         doc_trans = GoogleTranslator(target=f"{self._language_option.value}")
-        target = os.path.dirname(os.path.abspath(__file__))
-        with open(f"gitshet.pdf","rb") as file:
+        with open(f"{self._name_extracted_file.value}.{self._document_type.value}","rb") as file:
+            
             read_pdf = PyPDF2.PdfReader(file)
             text = ""
             trans = ""
-            for page in range(len(read_pdf.pages)):
-                text += read_pdf.pages[page].extract_text()
-                trans += doc_trans.translate(text)
-            self._text_leak.value = trans
-            self._pre_document_leak.visible = True
-            print(trans)
+            count = 0
+            totalpages = len(read_pdf.pages)
+            # self._page_number.value = totalpages
+            
+            try:
+                for page in range(int(self._page_number.value),len(read_pdf.pages), 5000):
+                    # self.next_page(read_pdf.pages)
+                    # self._page_number = read_pdf.pages
+                    
+                    # self._page_number = count
+                    text += read_pdf.pages[page].extract_text()
+                    chunk = text[page:page + 5000]
+                    trans += doc_trans.translate(chunk) + " "
+                    self._text_leak.value = trans.strip()
+                    # self.get_page_next(e)
+                    print(trans)
+            except Exception as error:
+                return error
+            
+
+           
+            self.document_reader.controls.append(
+                ft.Container(
+                    ft.Column(
+                        [
+                            ft.TextField(value=trans.strip(),color="white",on_change=self.update_doc_pages,
+                                        border_color="grey",multiline=True,disabled=True)
+                        ],
+                        
+                        height=700,
+                        scroll=ft.ScrollMode.ALWAYS
+                    ),
+                    width=400,
+                    height=650,
+                    bgcolor="grey",
+                    padding=10
+                )
+            )
+            # self._pre_document_leak.visible = True
+            
+            
         
         self.update()
 
-    def visible_check(self,e):
-        self._lottie_check.visible = True
-        self.update()
-
-    def invisible_check(self,e):
-        self._lottie_check.visible = False
-        self.update()
-
+   
     def loading_progress(self,e):
-        self._lottie_loading.visible = True
+        self._Loading_element.visible = True
+        # self._lottie_loading.visible = True
         self.update()
 
     def close_progress(self,e):
-        self._lottie_loading.visible = False
+        self._Loading_element.visible = False
+        # self._lottie_loading.visible = False
         self.update()
 
-    def clear_status(self,e):
-        if self._name_extracted_file.value == "" and self._link_generator.value == "":
-            self.invisible_check(e)
-        self.update()
-
+    
     
 
 
@@ -695,17 +766,17 @@ class NotedApp(ft.Column):
         super().__init__()
         
 
-        self.Note_title = ft.TextField(border_color="white",hint_text="Title",
+        self.Note_title = ft.TextField(border_color="black",hint_text="Title",
                                        color="white",hint_style=ft.TextStyle(color="white"))
         self.Note_textField = ft.TextField(value="",border_color="black",hint_text="Textline...",
                                            multiline=True,hint_style=ft.TextStyle(color="white"),
-                                           min_lines=1,max_lines=4,color="white")
+                                           min_lines=1,max_lines=5,color="white")
         
 
         self.Field_Pad = ft.Container(
             self.Note_textField,
-            height=140,
-            border=ft.border.all(1,"white")
+            height=135,
+            border=ft.border.all(1,"black")
         )
         self.Note_list = ft.Column(
             [
@@ -752,14 +823,19 @@ class NotedApp(ft.Column):
         self.New_Post_annoucement = ft.SnackBar(
             content=ft.Text("new post released !!!")
         )
-
+        self.logo_app = ft.Container(
+            image_src="assets/icon.png",
+            width=30,
+            height=30
+        )
         self.NoteSearchBar = ft.Container(
                 ft.Column(
                     [
                         
                         ft.Row(
                             [
-                                ft.IconButton(ft.icons.TELEGRAM,icon_color="white",on_click= None),
+                                # ft.IconButton(ft.icons.TELEGRAM,icon_color="white",on_click= None),
+                                self.logo_app,
                                 ft.Text("PushGram",color="white",size=25,weight="bold"),
                                 ft.IconButton(ft.icons.POST_ADD,icon_color="white",on_click=self.Add_post)
                                 
@@ -779,7 +855,7 @@ class NotedApp(ft.Column):
             ),
             bgcolor="black",
             height=59,
-            padding=10,
+            padding=7,
             shadow= ft.BoxShadow(
                 blur_radius=3,
                 color="black",
@@ -795,7 +871,7 @@ class NotedApp(ft.Column):
                         
                         ft.Row(
                             [
-                                ft.IconButton(ft.icons.TELEGRAM,icon_color="white",on_click=None ),
+                                self.logo_app,
                                 ft.Text("PushGram",color="white",size=25,weight="bold"),
                                 ft.IconButton(ft.icons.SEARCH,icon_color="white",on_click=self.Search_post)
                                 
@@ -804,19 +880,24 @@ class NotedApp(ft.Column):
                         ),
                         
                         self.Note_title,
+                        ft.Divider(color="white"),
                         self.Field_Pad,
-                        
+                        ft.Divider(color="white"),
                         ft.Row(
                             [
-                                ft.FloatingActionButton(
-                                    icon=ft.icons.ADD, on_click=self.Add_note,
+                                ft.IconButton(
+                                    ft.icons.ADD, on_click=self.Add_note,
+                                    icon_color="blue",
+                                    # bgcolor="grey"
                                 ),
-                                ft.FloatingActionButton(
-                                    icon=ft.icons.DELETE, on_click=self.Clear_Field
+                                ft.IconButton(
+                                    ft.icons.DELETE, on_click=self.Clear_Field,
+                                    icon_color="red",
+                                    # bgcolor="grey"
                                 ),
                                 
                             ],
-                            alignment=ft.MainAxisAlignment.CENTER
+                            alignment=ft.MainAxisAlignment.START
                         ),
                         
                     ]
@@ -827,7 +908,7 @@ class NotedApp(ft.Column):
             bgcolor="black",
             # width=400,
             height=59,
-            padding=10,
+            padding=7,
             shadow= ft.BoxShadow(
                 blur_radius=3,
                 color="black",
@@ -936,21 +1017,25 @@ class NotedApp(ft.Column):
 
     def Clear_Field(self, e):
         self.Note_title.value = ""
-        self.Note_textField.value = "\n\n\n"
+        self.Note_textField.value = ""
+        self.Note_title.hint_text = "Title"
+        self.Note_title.hint_style=ft.TextStyle(color="white")
+        self.Note_textField.hint_text = "Textline..."
+        self.Note_textField.hint_style=ft.TextStyle(color="white")
         self.update()
 
     def Note_TopBar_Open(self, e):
         self.OpenNoteBar.visible = False
         self.CloseNoteBar.visible = True
         self.NoteSearchBar.height = 150 if self.NoteSearchBar.height == 59 else 59
-        self.NoteBar.height = 360 if self.NoteBar.height == 59 else 59
+        self.NoteBar.height = 370 if self.NoteBar.height == 59 else 59
         self.update()
 
     def Note_TopBar_close(self, e):
         self.OpenNoteBar.visible = True
         self.CloseNoteBar.visible = False
         self.NoteSearchBar.height = 59 if self.NoteSearchBar.height == 150 else 150
-        self.NoteBar.height = 59 if self.NoteBar.height == 360 else 360
+        self.NoteBar.height = 59 if self.NoteBar.height == 370 else 370
         self.update()
 
 
