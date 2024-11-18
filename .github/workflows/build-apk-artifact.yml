@@ -26,10 +26,10 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       
-      - name: set up flutter
-        uses: actions/setup-flutter@v5
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+      # - name: set up flutter
+      #   uses: actions/setup-flutter@v5
+      #   with:
+      #     flutter-version: ${{ env.FLUTTER_VERSION }}
         
       - name: install dependencies
         run: |
