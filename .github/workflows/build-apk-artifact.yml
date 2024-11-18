@@ -26,6 +26,11 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       
+
+      - name: set up toolchain
+        run: |
+          sudo apt install libblkid-dev
+          
       - name: set up flutter ${{ env.FLUTTER_VERSION }}
         uses: subosito/flutter-action@v2
         with:
