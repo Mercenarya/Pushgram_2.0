@@ -27,10 +27,20 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       
 
+      - name: get sudo update
+        run: |
+          sudo apt-get update
+
+          
+      - name: get gcc and Make
+        run: |
+          sudo apt-get install -y build-essential
+        
+
       - name: set up toolchain
         run: |
-          sudo apt install libblkid-dev
-          
+          sudo apt-get install -y cmake
+
       - name: set up flutter ${{ env.FLUTTER_VERSION }}
         uses: subosito/flutter-action@v2
         with:
