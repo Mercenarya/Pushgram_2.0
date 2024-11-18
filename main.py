@@ -17,9 +17,16 @@ cursor = db.cursor()
 class documentconverted(ft.Column):
     def __init__(self):
         super().__init__()
-        self._page_number = ft.TextField(hint_text=0,value=0,color="white",border_color="white",width=50,on_change=self.update_doc_pages)
+
+        self._total_pages = ft.Text(value=0,color="white")
+        self._page_number = ft.TextField(hint_text=0,value=0,color="white",
+                                         height=40,
+                                         border_color="white",width=40,
+                                         on_change=self.update_doc_pages)
         self._link_generator = ft.TextField(hint_text="Link",border_color="grey")
+        
         self._name_extracted_file = ft.TextField(hint_text="Extract file name",border_color="grey")
+        
         self._generate = ft.ElevatedButton("Execute",color="white",
                                            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=0),side=ft.border.BorderSide(1,"grey"))
                                            ,bgcolor="black",width=301,height=40,on_click=self.request_doc)
@@ -66,8 +73,8 @@ class documentconverted(ft.Column):
         )
         self._document_type = ft.Dropdown(
             options=[
-                ft.dropdown.Option("PDF"),
-                ft.dropdown.Option("Docx")
+                ft.dropdown.Option("pdf"),
+                # ft.dropdown.Option("Docx")
             ],
             width=145,
             text_size=12,
@@ -107,21 +114,23 @@ class documentconverted(ft.Column):
         self.page_count_step = ft.Container(
             ft.Row(
                 [
-                    self._page_number
+                    self._page_number,
+                    ft.Text("/",color="white"),
+                    self._total_pages
                 ]
             ),
             
             width=80,
             height=60
         )
-
+ 
         self.document_controller = ft.Container(
 
             ft.Row(
                 [
-                    ft.IconButton(ft.icons.ARROW_LEFT,icon_color="white"),
+                    ft.IconButton(ft.icons.ARROW_LEFT,icon_color="white",on_click=self.prev_page),
                     self.page_count_step,
-                    ft.IconButton(ft.icons.ARROW_RIGHT,icon_color="white")
+                    ft.IconButton(ft.icons.ARROW_RIGHT,icon_color="white",on_click=self.next_page)
                 ],alignment="spacebetween"
             ),
             height=60,
@@ -209,21 +218,30 @@ class documentconverted(ft.Column):
     
         ]
 
-    #total pages of document
-    # def next_page(self,doc):
-    #     count = 0
-    #     for page in doc:
-    #         count += 1
-    #         self._page_number = count
-    # def get_page_next(self,e):
-    #     self.next_page()
-    #     self.update()
+    #page's controls of document
+    def next_page(self,e):
+        if int(self._page_number.value) <= int(self._total_pages.value):
+            self._page_number.value = str(int(self._page_number.value)+1)
+        elif int(self._page_number.value) > int(self._total_pages.value):
+            self._page_number.value = 0
+        self.translate_doc(e)
+        self.update()
+        
+        
+    def prev_page(self,e):
+        if int(self._page_number.value) <= int(self._total_pages.value):
+            self._page_number.value = str(int(self._page_number.value)-1)          
+        elif int(self._page_number.value) > int(self._total_pages.value):
+            self._page_number.value = 0
+        self.translate_doc(e)
+        self.update()
             
 
     def update_doc_pages(self,e):
         self.document_reader.controls.clear()
         self.translate_doc(e)
         self.update()
+
     def translate_doc(self,e):
         self.document_reader.controls.clear()
         '''Test PDF link below'''
@@ -236,19 +254,16 @@ class documentconverted(ft.Column):
             trans = ""
             count = 0
             totalpages = len(read_pdf.pages)
-            # self._page_number.value = totalpages
+            self._total_pages.value = f"{totalpages}"
             
             try:
                 for page in range(int(self._page_number.value),len(read_pdf.pages), 5000):
-                    # self.next_page(read_pdf.pages)
-                    # self._page_number = read_pdf.pages
                     
-                    # self._page_number = count
                     text += read_pdf.pages[page].extract_text()
                     chunk = text[page:page + 5000]
                     trans += doc_trans.translate(chunk) + " "
                     self._text_leak.value = trans.strip()
-                    # self.get_page_next(e)
+                    
                     print(trans)
             except Exception as error:
                 return error
