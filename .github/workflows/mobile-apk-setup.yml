@@ -34,7 +34,6 @@ jobs:
 
       - name: check all version
         run: |
-          dart --version
           flutter --version
           flet --vesion
           flutter doctor
