@@ -46,7 +46,6 @@ jobs:
       - name: check all version
         run: |
           python --version
-          flet --vesion
           flutter doctor
 
 
