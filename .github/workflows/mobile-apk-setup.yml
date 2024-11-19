@@ -34,7 +34,7 @@ jobs:
 
       - name: check all version
         run: |
-          flutter --version
+          python --version
           flet --vesion
           flutter doctor
       
