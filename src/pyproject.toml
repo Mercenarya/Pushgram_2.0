@@ -1,5 +1,5 @@
 [project]
-name = "ad_test"
+name = "pushgram app"
 version = "0.1.0"
 description = ""
 readme = "README.md"
@@ -9,8 +9,6 @@ dependencies = [
   "deep_translator==1.11.4",
   "requests==2.32.3",
   "PyPDF2==3.0.1"
-
-
 ]
 
 
@@ -21,13 +19,23 @@ org = "com.mycompany"
 
 # project display name that is used as an app title on Android and iOS home screens,
 # shown in window titles and about app dialogs on desktop.
-product = "pushgram"
+product = "pushgram app"
 
 # company name to display in about app dialogs
-company = "Flet"
+company = "Aigus Group"
 
 # copyright text to display in about app dialogs
 copyright = "Copyright (C) 2024 by Flet"
 
 [tool.flet.app]
 path = ""
+module = "main"
+exclude = ["assets"]
+
+
+[tool.flet.compile]
+app = false
+packages = false
+cleanup = false
+
+
