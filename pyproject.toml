@@ -28,7 +28,7 @@ company = "Aigus Group"
 copyright = "Copyright (C) 2024 by Flet"
 
 [tool.flet.app]
-path = ""
+path = "src"
 module = "main"
 exclude = ["assets"]
 
