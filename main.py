@@ -170,8 +170,6 @@ class documentconverted(ft.Column):
                                 ft.Row(
                                     [
                                         self._Loading_element,
-                                        # self._lottie_loading,
-                                        # self._lottie_check,
                                         self._pre_document_leak
                                     ],
                                     width=300,
@@ -846,10 +844,8 @@ class NotedApp(ft.Column):
         self.NoteSearchBar = ft.Container(
                 ft.Column(
                     [
-                        
                         ft.Row(
                             [
-                                # ft.IconButton(ft.icons.TELEGRAM,icon_color="white",on_click= None),
                                 self.logo_app,
                                 ft.Text("PushGram",color="white",size=25,weight="bold"),
                                 ft.IconButton(ft.icons.POST_ADD,icon_color="white",on_click=self.Add_post)
@@ -900,19 +896,21 @@ class NotedApp(ft.Column):
                         ft.Divider(color="white"),
                         ft.Row(
                             [
-                                ft.IconButton(
-                                    ft.icons.ADD, on_click=self.Add_note,
-                                    icon_color="blue",
-                                    # bgcolor="grey"
-                                ),
+                                
                                 ft.IconButton(
                                     ft.icons.DELETE, on_click=self.Clear_Field,
                                     icon_color="red",
-                                    # bgcolor="grey"
+                                    
+                                ),
+                                
+                                ft.IconButton(
+                                    ft.icons.ADD, on_click=self.Add_note,
+                                    icon_color="blue",
+                                    
                                 ),
                                 
                             ],
-                            alignment=ft.MainAxisAlignment.START
+                            alignment="spacebetween"
                         ),
                         
                     ]
@@ -962,9 +960,7 @@ class NotedApp(ft.Column):
         except Exception as error:
             print(error)
 
-    def Link_random(self, e):
-        self.page.launch_url("https://shopee.vn/")
-        self.update()
+
 
     def Search_Result(self, e):
         self.Note_list.controls.clear()
@@ -1004,7 +1000,7 @@ class NotedApp(ft.Column):
             self.Dialog_post_2.open = True
 
         time.sleep(2)
-        self.Link_random(e)
+        
         self.update()
 
     def Search_post(self,e):
@@ -1043,14 +1039,14 @@ class NotedApp(ft.Column):
         self.OpenNoteBar.visible = False
         self.CloseNoteBar.visible = True
         self.NoteSearchBar.height = 150 if self.NoteSearchBar.height == 59 else 59
-        self.NoteBar.height = 370 if self.NoteBar.height == 59 else 59
+        self.NoteBar.height = 390 if self.NoteBar.height == 59 else 59
         self.update()
 
     def Note_TopBar_close(self, e):
         self.OpenNoteBar.visible = True
         self.CloseNoteBar.visible = False
         self.NoteSearchBar.height = 59 if self.NoteSearchBar.height == 150 else 150
-        self.NoteBar.height = 59 if self.NoteBar.height == 370 else 370
+        self.NoteBar.height = 59 if self.NoteBar.height == 390 else 390
         self.update()
 
 
