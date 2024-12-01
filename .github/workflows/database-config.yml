@@ -1,0 +1,39 @@
+name: setup database 
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+env:
+  PYTHON_VERSION: '3.13.0'
+
+jobs:
+  
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: install dependencies
+        run: |
+          # python.exe -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: check directory
+        run: |
+          ls
+
+      - name: run database
+        run: |
+          python databases.py

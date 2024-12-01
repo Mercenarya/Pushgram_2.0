@@ -1,0 +1,63 @@
+name: build apk
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+env:
+  PYTHON_VERSION: 3.13.0
+  FLUTTER_VERSION: 3.24.5
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+
+      - name: get sudo update
+        run: |
+          sudo apt-get update
+
+          
+      - name: get gcc and Make
+        run: |
+          sudo apt-get install -y build-essential
+        
+
+      - name: set up toolchain
+        run: |
+          sudo apt-get install -y cmake
+
+      - name: set up flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+        
+      - name: install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: build apk with flet control
+        run: |
+          flet build apk -vv
+
+      - name: upload to artifact
+        uses: actions/upload-artifact@v4.3.4
+        with:
+          name: pushgram-artifact
+          path: build/apk
+          if-no-files-found: error
+          

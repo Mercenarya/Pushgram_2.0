@@ -1,0 +1,53 @@
+name: set up mobile configuration
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+env:
+  PYTHON_VERSION: 3.13.0
+  FLUTTER_VERSION: 3.24.5
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: setup python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: setup flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      
+      
+      - name: check directory
+        run: |
+          ls
+
+      - name: install dependencies
+        run: |
+          pip install -r requirements.txt
+
+
+      - name: check all version
+        run: |
+          python --version
+          flutter doctor
+
+
+
+
