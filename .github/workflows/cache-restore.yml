@@ -27,7 +27,7 @@ jobs:
 
       - name: restore cache
         run: |
-          rd /s /q %USERPROFILE%\.cookiecutters
+          rm -rf ~/.cookiecutters
 
-          
+
 
